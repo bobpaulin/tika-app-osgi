@@ -1,0 +1,1 @@
+# tika-app-osgi

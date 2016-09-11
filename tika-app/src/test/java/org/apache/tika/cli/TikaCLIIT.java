@@ -382,14 +382,22 @@ public class TikaCLIIT {
         assertTrue(content.contains("\"X-TIKA:embedded_resource_path\": \"/embed1.zip\""));
         assertFalse(content.contains("X-TIKA:content"));
     }
-
+    
     public void runFramework(String[] params) throws Exception {
+        runFramework(params, null);
+    }
+
+    public void runFramework(String[] params, String[] systemProps) throws Exception {
         
         
         List<String> forkCommand = new ArrayList<String>();
         forkCommand.add("java");
         forkCommand.add("-cp");
         forkCommand.add(System.getProperty("project.bundle.file"));
+        if(systemProps != null)
+        {
+            forkCommand.addAll(Arrays.asList(systemProps));
+        }
         forkCommand.add("org.apache.tika.main.Main");
         forkCommand.addAll(Arrays.asList(params));
         builder.command(forkCommand);
@@ -462,6 +470,15 @@ public class TikaCLIIT {
                         " <mime>application/pdf</mime> " +
                         "</parser>";
         assertTrue(content.contains(expected));
+    }
+    
+    @Test
+    public void testPlugins() throws Exception {
+        String[] params = {"--list-parser"};
+        String[] systemProps = {"-Dorg.osgi.framework.storage.clean=onFirstInit",
+                "-D"+ Main.PLUGIN_DEPLOY_DIR_PROP + "=" +testInputDir.toAbsolutePath().toString() + "/plugins"};
+        runFramework(params, systemProps);
+        assertTrue(outContent.toString(UTF_8.name()).contains("DummyParser"));
     }
 
     @Test

@@ -51,11 +51,6 @@ public class AutoProcessor {
      * The default name used for the bundle directory.
      **/
     public static final String AUTO_DEPLOY_DIR_VALUE = "bundles";
-    
-    /**
-     * The Plugin Deploy Directory Property value
-     */
-    public static final String PLUGIN_DEPLOY_DIR_PROPERTY = "org.apache.tika.app.pluginDir";
     /**
      * The property name used to specify auto-deploy actions.
      * 
@@ -185,7 +180,7 @@ public class AutoProcessor {
                 e.printStackTrace();
             }
             
-            String pluginDir = (String)configMap.get(AutoProcessor.PLUGIN_DEPLOY_DIR_PROPERTY);
+            String pluginDir = (String)configMap.get(Main.PLUGIN_DEPLOY_DIR_PROP);
             
             if(pluginDir != null)
             {

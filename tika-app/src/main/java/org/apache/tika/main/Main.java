@@ -41,14 +41,8 @@ import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 
 /**
- * <p>
- * This class is the default way to instantiate and execute the framework. It is
- * not intended to be the only way to instantiate and execute the framework;
- * rather, it is one example of how to do so. When embedding the framework in a
- * host application, this class can serve as a simple guide of how to do so. It
- * may even be worthwhile to reuse some of its property handling capabilities.
- * </p>
- **/
+ * Main Entry Point into the Tika App
+*/
 public class Main {
     /**
      * This argument indicates that the batch CLI should be activated.
@@ -80,7 +74,39 @@ public class Main {
      * Name of the configuration directory.
      */
     public static final String CONFIG_DIRECTORY = "conf";
-
+    /**
+     * The Plugin Deploy Directory Property value
+     */
+    public static final String PLUGIN_DEPLOY_DIR_PROP = "org.apache.tika.app.pluginDir";
+    /**
+     * Name of plugin directory
+     */
+    public static final String PLUGINS_DIR = "plugins";
+    /**
+     * Batch Mode Property
+     */
+    public static final String BATCH_MODE_PROP = "org.apache.tika.batch.mode";
+    /**
+     * Launch Argument Property
+     */
+    public static final String LAUNCH_ARGS_PROP = "org.apache.tika.command.launchArgs";
+    /**
+     * Telnet Port Property
+     */
+    public static final String TELNET_PORT_PROP = "osgi.shell.telnet.port";
+    /**
+     * PAX Logging Level Property
+     */
+    public static final String PAX_LOG_LEVEL_PROP = "org.ops4j.pax.logging.DefaultServiceLog.level";
+    /**
+     * Tika Config Path Property
+     */
+    public static final String TIKA_CONFIG_PATH_PROP = "org.apache.tika.osgi.internal.TikaServiceImpl.tikaConfigPath";
+    /**
+     * Gogo Shell Gosh Property
+     */
+    public static final String GOGO_SHELL_GOSH_PROP = "gosh.args";
+    
     private static Framework m_fwk = null;
 
     public static void main(String[] args) throws Exception {
@@ -98,63 +124,57 @@ public class Main {
             configProps = new HashMap<String, String>();
         }
         
-     // Set Logging Levels
-        String logLevel = System.getProperty("org.ops4j.pax.logging.DefaultServiceLog.level");
+        // Set Logging Levels
+        String logLevel = System.getProperty(PAX_LOG_LEVEL_PROP);
         if (logLevel == null) {
-            System.setProperty("org.ops4j.pax.logging.DefaultServiceLog.level", "WARN");
+            System.setProperty(PAX_LOG_LEVEL_PROP, "WARN");
         }
-
+        
         // Load system properties.
         Main.loadSystemProperties();
-        
 
         // Copy framework properties from the system properties.
         Main.copySystemProperties(configProps);
-        
-        
-
-        // Look for bundle directory and/or cache directory.
-        // We support at most one argument, which is the bundle
-        // cache directory.
 
         // Disable Command prompt
-        System.setProperty("gosh.args", "--nointeractive");
+        System.setProperty(GOGO_SHELL_GOSH_PROP, "--nointeractive");
 
         // Copy command args
         StringBuilder progArgs = new StringBuilder();
 
-        String pluginDir = null;
         String cacheDir = null;
-        boolean expectPluginDir = false;
         boolean batchMode = false;
         for (int i = 0; i < args.length; i++) {
             if (args[i].startsWith("--config=")) {
-                configProps.put("org.apache.tika.osgi.internal.TikaServiceImpl.tikaConfigPath", args[i].substring(9));
+                configProps.put(TIKA_CONFIG_PATH_PROP, args[i].substring(9));
             } else if (args[i].equals("--batch-mode")) {
                 batchMode = true;
             }
             progArgs.append(args[i]);
             progArgs.append("\n");
         }
+        
+      //Set Plugin Directory
+        String pluginDir = System.getProperty(PLUGIN_DEPLOY_DIR_PROP);
+        if(pluginDir != null)
+        {
+            configProps.put(PLUGIN_DEPLOY_DIR_PROP, pluginDir);
+        }
+        else
+        {
+            configProps.put(PLUGIN_DEPLOY_DIR_PROP, PLUGINS_DIR);
+        }
 
-        configProps.put("org.apache.tika.batch.mode", Boolean.toString(batchMode));
+        configProps.put(BATCH_MODE_PROP, Boolean.toString(batchMode));
 
-        configProps.put("org.apache.tika.command.launchArgs", progArgs.toString());
+        configProps.put(LAUNCH_ARGS_PROP, progArgs.toString());
 
-        int telnetStartPort = Integer.parseInt(configProps.get("osgi.shell.telnet.port"));
+        int telnetStartPort = Integer.parseInt(configProps.get(TELNET_PORT_PROP));
 
         while (!availablePort(telnetStartPort)) {
             System.out.println("Port is not open: " + telnetStartPort);
             telnetStartPort++;
-            configProps.put("osgi.shell.telnet.port", Integer.toString(telnetStartPort));
-        }
-
-        validateAndPrintUsage(args, pluginDir, expectPluginDir);
-
-        // If there is a passed in plugin directory, then
-        // that overwrites anything in the config file.
-        if (pluginDir != null) {
-            configProps.put(AutoProcessor.PLUGIN_DEPLOY_DIR_PROPERTY, pluginDir);
+            configProps.put(TELNET_PORT_PROP, Integer.toString(telnetStartPort));
         }
 
         // If there is a passed in bundle cache directory, then
@@ -205,13 +225,6 @@ public class Main {
         } catch (Exception ex) {
             System.err.println("Could not create framework: " + ex);
             ex.printStackTrace();
-            System.exit(0);
-        }
-    }
-
-    public static void validateAndPrintUsage(String[] args, String pluginDir, boolean expectPluginDir) {
-        if ((expectPluginDir && pluginDir == null)) {
-            System.out.println("Provide a Plugin Directory for the --plugin option");
             System.exit(0);
         }
     }

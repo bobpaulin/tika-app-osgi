@@ -17,6 +17,8 @@ Example
        plugins
          parser-bundle.jar
 
+An example of a plugin can be find in the examples folder of this project.  The example plugin includes the bare minimum needed to add a parser to the app.  Specifically that is the Parser, Activator, and Java Serivce file located in META-INF/services.
+
 ## Debugging the OSGi container
 The Gogo command shell is available over telnet on port 1234.  The port will auto-increment if 1234 is unavailable.
 

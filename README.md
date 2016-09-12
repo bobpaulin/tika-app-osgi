@@ -16,9 +16,15 @@ Example
      tika-app.jar
        plugins
          parser-bundle.jar
-  
+
 ## Debugging the OSGi container
 The Gogo command shell is available over telnet on port 1234.  The port will auto-increment if 1234 is unavailable.
+
+Additionally when making changes to the app be sure to delete the felix-cache folder that's created on the same level as the app jar file.  Any plugins installed or tika bundles will be cached in the folder so you may not see your changes if you don't delete it.  Pass the System Property
+
+     -Dorg.osgi.framework.storage.clean=onFirstInit
+
+That will force the cache to be cleared when the app is restarted.
 
 ## Fork Parser
 The fork parser operates different than the original tika app.  The forking causes a full version of the Tika App to spin up with separate command line arguments to run the app in a new process.  There is no separate JAR packaging or serialization.
